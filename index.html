@@ -1,470 +1,516 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ScanAPP - QR日期檢查</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-<meta name="theme-color" content="#2196f3">
-<script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
-<style>
-body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(135deg,#6a11cb 0%,#2575fc 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px;margin:0}
-.container{width:100%;max-width:500px;background:rgba(255,255,255,0.95);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.2);overflow:hidden}
-.header{background:linear-gradient(90deg,#2575fc 0%,#6a11cb 100%);color:#fff;text-align:center;padding:24px 20px}
-.header h1{font-weight:700;font-size:24px;margin-bottom:8px}
-.header p{font-weight:300;opacity:.9;font-size:16px}
-.content{padding:24px 20px;text-align:center}
-.scan-area{width:100%;height:300px;margin:20px 0;border:3px dashed #6a11cb;border-radius:12px;display:flex;justify-content:center;align-items:center;position:relative;overflow:hidden}
-#qr-reader{width:100%;height:100%}
-.scan-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#6a11cb;background:rgba(255,255,255,.8);padding:15px;border-radius:10px;z-index:10}
-.camera-permission{display:none;text-align:center;margin:20px 0;padding:15px;background:#f8f9fa;border-radius:12px}
-.camera-permission i{font-size:48px;color:#6a11cb;margin-bottom:10px}
-.camera-permission p{margin:10px 0}
-.loader{display:none;margin:20px 0}
-.loader i{font-size:36px;color:#6a11cb;animation:spin 1s linear infinite}
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-.error{color:#e74c3c;margin-top:16px;display:none;background:#ffeaea;padding:12px;border-radius:8px}
-.scanned-date{font-size:18px;margin:15px 0;color:#333;font-weight:500}
-.result{display:none;margin-top:20px;padding:16px;background:#f8f9fa;border-radius:12px}
-.status{font-size:22px;font-weight:700;margin-bottom:8px}
-.expired{color:#e74c3c}
-.today{color:#f39c12}
-.future{color:#27ae60}
-.auto-rescan{display:none;margin-top:12px;font-size:14px;color:#555}
-.enable-camera-btn, .manual-input-btn, .retry-camera-btn{margin-top:15px;padding:12px 20px;font-size:16px;color:#fff;background:linear-gradient(90deg,#2196f3 0%,#6a11cb 100%);border:none;border-radius:14px;cursor:pointer;width:100%}
-.retry-camera-btn{background:linear-gradient(90deg,#e74c3c 0%,#f39c12 100%)}
-.manual-input-btn{background:linear-gradient(90deg,#6a11cb 0%,#2196f3 100%);margin-top:10px}
-.manual-input-container{display:none;margin-top:20px;text-align:left}
-.manual-input-container input{width:100%;padding:12px;margin:8px 0;border:2px solid #ddd;border-radius:8px;font-size:16px;box-sizing:border-box;transition:border-color 0.3s}
-.manual-input-container input:focus{outline:none;border-color:#6a11cb;box-shadow:0 0 0 2px rgba(106,17,203,0.2)}
-.input-hint{font-size:14px;color:#666;margin-top:4px}
-.history-container{display:none;margin-top:20px;text-align:left}
-.history-item{padding:12px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
-.history-date{font-weight:500}
-.history-status{font-weight:700}
-.history-expired{color:#e74c3c}
-.history-today{color:#f39c12}
-.history-future{color:#27ae60}
-.tabs{display:flex;margin-bottom:15px;border-bottom:1px solid #ddd}
-.tab-button{flex:1;padding:10px;text-align:center;background:#f0f0f0;border:none;cursor:pointer;transition:background 0.3s}
-.tab-button.active{background:#fff;border-bottom:2px solid #6a11cb;font-weight:500}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.camera-switch{display:none;margin-top:10px;text-align:center}
-.camera-switch select{padding:8px;border-radius:8px;border:1px solid #ddd}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QR日期檢查工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { font-family: 'Noto Sans TC', sans-serif; background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; line-height:1.6; }
+        .container { width:100%; max-width:100%; background: rgba(255,255,255,0.95); border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.2); overflow:hidden; }
+        .header { background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%); color:white; text-align:center; padding:24px 20px; position:relative; }
+        .header h1 { font-weight:700; font-size:24px; margin-bottom:8px; }
+        .header p { font-weight:300; opacity:0.9; font-size:16px; }
+        .content { padding:24px 20px; }
+        .input-group { margin-bottom:24px; }
+        .input-group label { display:block; margin-bottom:12px; font-weight:500; color:#333; font-size:18px; }
+        .input-wrapper { position:relative; display:flex; align-items:center; }
+        .input-wrapper i { position:absolute; left:18px; color:#6a11cb; font-size:22px; z-index:1; }
+        .input-wrapper input { width:100%; padding:18px 18px 18px 56px; border:2px solid #ddd; border-radius:14px; font-size:18px; transition:all 0.3s ease; background:#fff; }
+        .input-wrapper input:focus { border-color:#6a11cb; outline:none; box-shadow:0 0 0 3px rgba(106,17,203,0.2); }
+        .input-wrapper input::placeholder { color:#aaa; font-size:16px; }
+        .camera-btn { width:100%; padding:16px; background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%); border:none; border-radius:14px; color:white; font-size:18px; font-weight:500; cursor:pointer; transition:all 0.3s ease; box-shadow:0 6px 12px rgba(76,175,80,0.4); touch-action:manipulation; margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:10px; }
+        .camera-btn:active { transform:scale(0.98); box-shadow:0 4px 8px rgba(76,175,80,0.6); }
+        .camera-btn:disabled { background: #cccccc; box-shadow: none; cursor: not-allowed; }
+        button { width:100%; padding:20px; background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%); border:none; border-radius:14px; color:white; font-size:20px; font-weight:500; cursor:pointer; transition:all 0.3s ease; box-shadow:0 6px 12px rgba(106,17,203,0.4); touch-action:manipulation; }
+        button:active { transform:scale(0.98); box-shadow:0 4px 8px rgba(106,17,203,0.6); }
+        button:disabled { background: #cccccc; box-shadow: none; cursor: not-allowed; }
+        .result { margin-top:28px; text-align:center; padding:20px; border-radius:14px; background:#f8f9fa; display:none; animation: fadeIn 0.5s ease; }
+        .status { font-size:24px; font-weight:700; margin-bottom:12px; }
+        .days { font-size:20px; color:#555; }
+        .expired { color:#e74c3c; }
+        .today { color:#f39c12; }
+        .future { color:#27ae60; }
+        .loader { display:none; text-align:center; margin-top:24px; }
+        .loader i { font-size:36px; color:#6a11cb; animation:spin 1s linear infinite; }
+        @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .error { color:#e74c3c; text-align:center; margin-top:16px; display:none; font-size:16px; padding:12px; background:#ffecec; border-radius:10px; border-left:4px solid #e74c3c; animation: shake 0.5s ease; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .camera-container { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index:100; flex-direction:column; justify-content:center; align-items:center; }
+        #qr-reader { width:100%; max-width:500px; padding: 20px; background: white; border-radius: 12px; }
+        .camera-controls { margin-top:20px; display:flex; gap:15px; }
+        .camera-controls button { width:auto; padding:12px 24px; font-size:16px; }
+        .close-camera { background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%) !important; color:white; border:none; border-radius:14px; cursor:pointer; }
+        .camera-permission { display: none; text-align: center; padding: 15px; background: #fff8e1; border-radius: 10px; margin-top: 15px; border-left: 4px solid #ffc107; }
+        .camera-permission p { color: #856404; margin-bottom: 10px; }
+        .camera-permission button { background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%); }
+        .hint { text-align: center; margin-top: 15px; color: #666; font-size: 14px; }
+        .success-animation { animation: successPulse 0.5s ease; }
+        @keyframes successPulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .permission-help { margin-top: 15px; font-size: 14px; color: #666; }
+        .permission-help details { text-align: left; margin-top: 10px; }
+        .permission-help summary { cursor: pointer; margin-bottom: 5px; }
+        .permission-help ul { padding-left: 20px; margin-top: 5px; }
+        .camera-selector { margin: 15px 0; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+        .camera-status { color: white; margin-bottom: 15px; text-align: center; }
+        @media (max-width:380px) { .header h1 { font-size:22px; } .header p { font-size:15px; } .input-group label { font-size:17px; } .input-wrapper input { padding:16px 16px 16px 52px; font-size:16px; } button,.camera-btn { padding:18px; font-size:18px; } }
+        @media (min-width:768px) { .container { max-width:450px; } }
+    </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <h1><i class="fas fa-qrcode"></i> ScanAPP</h1>
-    <p>掃描QR碼自動檢查日期有效期狀態</p>
-  </div>
-  <div class="content">
-    <div class="tabs">
-      <button class="tab-button active" data-tab="scan">掃描QR碼</button>
-      <button class="tab-button" data-tab="manual">手動輸入</button>
-      <button class="tab-button" data-tab="history">歷史記錄</button>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-qrcode"></i> QR日期檢查</h1>
+            <p>輸入QR碼中的日期資訊，檢查有效期狀態</p>
+        </div>
+        <div class="content">
+            <div class="input-group">
+                <label for="qr-input">QR碼日期 (YYYYMMDD格式):</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="text" id="qr-input" placeholder="例如: 20230929" maxlength="8" inputmode="numeric" pattern="[0-9]*">
+                </div>
+            </div>
+            
+            <button class="camera-btn" id="camera-btn"><i class="fas fa-camera"></i> 使用相機掃描</button>
+            
+            <div class="camera-permission" id="camera-permission">
+                <p><i class="fas fa-exclamation-triangle"></i> 相機權限已被拒絕</p>
+                <button id="enable-camera"><i class="fas fa-camera"></i> 重新請求相機權限</button>
+                
+                <div class="permission-help">
+                    <details>
+                        <summary>如何啟用相機權限？</summary>
+                        <ul>
+                            <li>點擊地址欄左側的相機圖標</li>
+                            <li>選擇"始終允許"此網站使用相機</li>
+                            <li>或檢查瀏覽器設置中的權限設定</li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+            
+            <button id="check-btn"><i class="fas fa-check-circle"></i> 檢查日期</button>
+            
+            <div class="loader" id="loader"><i class="fas fa-spinner"></i></div>
+            
+            <div class="error" id="error-message"></div>
+            
+            <div class="result" id="result">
+                <div class="status" id="status-text"></div>
+                <div class="days" id="days-text"></div>
+            </div>
+            
+            <div class="hint">
+                <p><i class="fas fa-info-circle"></i> 提示：QR碼應包含8位數字日期格式(YYYYMMDD)</p>
+            </div>
+        </div>
     </div>
-    
-    <div id="scan-tab" class="tab-content active">
-      <div class="scan-area">
+
+    <div class="camera-container" id="camera-container">
+        <div class="camera-status" id="camera-status">正在啟動相機...</div>
         <div id="qr-reader"></div>
-        <div class="scan-guide" id="scan-guide"><i class="fas fa-camera"></i><p>點擊下方按鈕啟動相機</p></div>
-      </div>
-      
-      <div class="camera-permission" id="camera-permission">
-        <i class="fas fa-camera-slash"></i>
-        <h3>需要相機權限</h3>
-        <p>請允許瀏覽器使用相機功能以掃描QR碼</p>
-        <p>如果您之前拒絕了權限，請點擊瀏覽器地址欄中的相機圖標重新啟用</p>
-      </div>
-      
-      <div class="camera-switch" id="camera-switch">
-        <label for="camera-select">選擇相機: </label>
-        <select id="camera-select"></select>
-      </div>
-      
-      <button class="enable-camera-btn" id="enable-camera">啟用相機掃描</button>
-      <button class="retry-camera-btn" id="retry-camera" style="display:none">重試相機權限</button>
-    </div>
-    
-    <div id="manual-tab" class="tab-content">
-      <div class="manual-input-container">
-        <p>請輸入8位數字日期 (格式: YYYYMMDD)</p>
-        <input type="text" id="manual-date-input" placeholder="例如: 20231225" maxlength="8" inputmode="numeric">
-        <div class="input-hint">請輸入正確的日期格式，例如：2023年12月25日應輸入為 20231225</div>
-        <button class="enable-camera-btn" id="check-date-btn">檢查日期</button>
-      </div>
-    </div>
-    
-    <div id="history-tab" class="tab-content">
-      <div class="history-container">
-        <div id="history-list"></div>
-        <button class="enable-camera-btn" id="clear-history-btn">清除歷史記錄</button>
-      </div>
-    </div>
-    
-    <div class="loader" id="loader"><i class="fas fa-spinner"></i></div>
-    <div class="error" id="error-message"></div>
-    <div id="scanned-date" class="scanned-date"></div>
-    <div class="result" id="result">
-      <div class="status" id="status-text"></div>
-      <div class="days" id="days-text"></div>
-    </div>
-    <div class="auto-rescan" id="auto-rescan"></div>
-  </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded',function(){
-  const resultDiv=document.getElementById('result'),
-        statusText=document.getElementById('status-text'),
-        daysText=document.getElementById('days-text'),
-        loader=document.getElementById('loader'),
-        errorMessage=document.getElementById('error-message'),
-        scanGuide=document.getElementById('scan-guide'),
-        scannedDate=document.getElementById('scanned-date'),
-        autoRescan=document.getElementById('auto-rescan'),
-        enableCameraBtn=document.getElementById('enable-camera'),
-        retryCameraBtn=document.getElementById('retry-camera'),
-        manualDateInput=document.getElementById('manual-date-input'),
-        checkDateBtn=document.getElementById('check-date-btn'),
-        historyList=document.getElementById('history-list'),
-        clearHistoryBtn=document.getElementById('clear-history-btn'),
-        tabButtons=document.querySelectorAll('.tab-button'),
-        cameraPermission=document.getElementById('camera-permission'),
-        cameraSwitch=document.getElementById('camera-switch'),
-        cameraSelect=document.getElementById('camera-select');
-
-  let html5QrCode=null, lastScannedCode='', rescanInterval=null, cameras=[];
-
-  // 切換標籤頁
-  tabButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // 移除所有active類
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      
-      // 添加active類到當前選中的標籤
-      this.classList.add('active');
-      const tabId = this.getAttribute('data-tab') + '-tab';
-      document.getElementById(tabId).classList.add('active');
-      
-      // 如果切換到掃描標籤且相機未啟動，顯示啟用相機按鈕
-      if (this.getAttribute('data-tab') === 'scan' && (!html5QrCode || !html5QrCode.isScanning)) {
-        enableCameraBtn.style.display = 'block';
-        retryCameraBtn.style.display = 'none';
-      }
-      
-      // 如果切換到非掃描標籤，停止相機
-      if (this.getAttribute('data-tab') !== 'scan' && html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop();
-      }
-      
-      // 如果切換到歷史標籤，加載歷史記錄
-      if (this.getAttribute('data-tab') === 'history') {
-        loadHistory();
-      }
-    });
-  });
-
-  // 初始化加載歷史記錄
-  loadHistory();
-
-  enableCameraBtn.addEventListener('click', initCamera);
-  retryCameraBtn.addEventListener('click', initCamera);
-  checkDateBtn.addEventListener('click', handleManualInput);
-  clearHistoryBtn.addEventListener('click', clearHistory);
-  
-  // 手動輸入框按Enter鍵提交
-  manualDateInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      handleManualInput();
-    }
-  });
-
-  // 初始化相機
-  function initCamera(){
-    enableCameraBtn.style.display='none';
-    retryCameraBtn.style.display='none';
-    cameraPermission.style.display='none';
-    scanGuide.style.display='block';
-    scanGuide.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>正在啟動相機...</p>';
-    
-    if(html5QrCode && html5QrCode.isScanning) {
-      html5QrCode.stop();
-    }
-    
-    // 獲取相機列表
-    Html5Qrcode.getCameras().then(availableCameras => {
-      cameras = availableCameras;
-      if(!cameras.length) {
-        showError("未找到可用的相機");
-        scanGuide.innerHTML = '<i class="fas fa-camera-slash"></i><p>未找到可用的相機</p>';
-        return;
-      }
-      
-      // 如果有多个相机，显示选择器
-      if (cameras.length > 1) {
-        cameraSwitch.style.display = 'block';
-        cameraSelect.innerHTML = '';
-        cameras.forEach((camera, index) => {
-          const option = document.createElement('option');
-          option.value = camera.id;
-          option.text = camera.label || `相機 ${index + 1}`;
-          cameraSelect.appendChild(option);
-        });
-      } else {
-        cameraSwitch.style.display = 'none';
-      }
-      
-      // 开始扫描
-      startCamera(cameras[0].id);
-    }).catch(err => {
-      console.error("無法取得相機列表:", err);
-      if(err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-        cameraPermission.style.display = 'block';
-        scanGuide.style.display = 'none';
-        retryCameraBtn.style.display = 'block';
-      } else {
-        showError("無法存取相機: " + (err.message || err));
-        scanGuide.innerHTML = '<i class="fas fa-camera-slash"></i><p>無法存取相機</p>';
-        enableCameraBtn.style.display = 'block';
-      }
-    });
-  }
-
-  // 启动相机
-  function startCamera(cameraId) {
-    html5QrCode = new Html5Qrcode("qr-reader");
-    html5QrCode.start(
-      cameraId,
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      qrMessage => {
-        const code = qrMessage.trim();
-        if(code !== lastScannedCode) {
-          lastScannedCode = code;
-          processScannedCode(code);
-        }
-      },
-      () => { /* 忽略掃描錯誤 */ }
-    ).then(() => {
-      scanGuide.style.display = 'none';
-    }).catch(err => {
-      console.error("無法啟動相機:", err);
-      if(err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-        cameraPermission.style.display = 'block';
-        scanGuide.style.display = 'none';
-        retryCameraBtn.style.display = 'block';
-      } else {
-        showError("無法啟動相機: " + (err.message || err));
-        scanGuide.innerHTML = '<i class="fas fa-camera-slash"></i><p>無法啟動相機</p>';
-        enableCameraBtn.style.display = 'block';
-      }
-    });
-  }
-
-  // 切换相机
-  if (cameraSelect) {
-    cameraSelect.addEventListener('change', function() {
-      if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => {
-          startCamera(this.value);
-        }).catch(err => {
-          console.error("無法切換相機:", err);
-        });
-      }
-    });
-  }
-
-  function handleManualInput() {
-    const code = manualDateInput.value.trim();
-    if (!code) {
-      showError("請輸入日期");
-      return;
-    }
-    processScannedCode(code);
-  }
-
-  function processScannedCode(code){
-    clearInterval(rescanInterval);
-    errorMessage.style.display='none';
-    autoRescan.style.display='none';
-    loader.style.display='block';
-    
-    if(!/^\d{8}$/.test(code)){
-      setTimeout(()=>{
-        loader.style.display='none';
-        showError("無效內容: "+code+"<br>請輸入8位數字日期 (格式: YYYYMMDD)");
-        scheduleRescan();
-      },500);
-      return;
-    }
-    
-    const year=code.slice(0,4),month=code.slice(4,6),day=code.slice(6,8),validation=isValidDate(code);
-    if(!validation.isValid){
-      loader.style.display='none';
-      showError(validation.message);
-      scheduleRescan();
-      return;
-    }
-    
-    scannedDate.textContent=`掃描日期: ${year}年${month}月${day}日`;
-    scannedDate.style.display='block';
-    
-    setTimeout(()=>{
-      loader.style.display='none';
-      const qrDate=new Date(year,month-1,day),today=new Date();
-      today.setHours(0,0,0,0);
-      const diffDays=Math.ceil((qrDate-today)/(1000*60*60*24));
-      let status, statusClass, daysMsg;
-      
-      if(diffDays<0){
-        status="已過期";
-        statusClass="expired";
-        daysMsg=`已過期 ${Math.abs(diffDays)} 天`;
-      } else if(diffDays===0){
-        status="今天到期";
-        statusClass="today";
-        daysMsg="今天到期";
-      } else{
-        status="尚未過期";
-        statusClass="future";
-        daysMsg=`剩餘天數: ${diffDays} 天`;
-      }
-      
-      statusText.textContent=status;
-      statusText.className="status " + statusClass;
-      daysText.textContent=daysMsg;
-      resultDiv.style.display='block';
-      
-      // 保存到歷史記錄
-      saveToHistory(code, status, statusClass, daysMsg);
-      
-      scheduleRescan();
-    },800);
-  }
-
-  function saveToHistory(dateCode, status, statusClass, daysMsg) {
-    let history = JSON.parse(localStorage.getItem('scanHistory') || '[]');
-    
-    // 避免重複添加相同的日期
-    const existingIndex = history.findIndex(item => item.dateCode === dateCode);
-    if (existingIndex !== -1) {
-      history.splice(existingIndex, 1);
-    }
-    
-    // 添加新記錄到開頭
-    history.unshift({
-      dateCode: dateCode,
-      status: status,
-      statusClass: statusClass,
-      daysMsg: daysMsg,
-      timestamp: new Date().toISOString()
-    });
-    
-    // 只保留最近10條記錄
-    if (history.length > 10) {
-      history = history.slice(0, 10);
-    }
-    
-    localStorage.setItem('scanHistory', JSON.stringify(history));
-  }
-
-  function loadHistory() {
-    const history = JSON.parse(localStorage.getItem('scanHistory') || '[]');
-    const historyContainer = document.querySelector('.history-container');
-    
-    if (history.length === 0) {
-      historyList.innerHTML = '<p style="text-align:center;padding:20px;">暫無歷史記錄</p>';
-      historyContainer.style.display = 'block';
-      return;
-    }
-    
-    historyList.innerHTML = '';
-    history.forEach(item => {
-      const dateStr = item.dateCode;
-      const year = dateStr.slice(0,4), month = dateStr.slice(4,6), day = dateStr.slice(6,8);
-      const date = new Date(item.timestamp);
-      
-      const historyItem = document.createElement('div');
-      historyItem.className = 'history-item';
-      historyItem.innerHTML = `
-        <div>
-          <div class="history-date">${year}年${month}月${day}日</div>
-          <div>檢查時間: ${date.toLocaleString('zh-TW')}</div>
+        <select class="camera-selector" id="camera-selector" style="display: none;">
+            <option value="">選擇相機...</option>
+        </select>
+        <div class="camera-controls">
+            <button class="close-camera" id="close-camera"><i class="fas fa-times"></i> 關閉相機</button>
         </div>
-        <div style="text-align:right;">
-          <div class="history-status history-${item.statusClass}">${item.status}</div>
-          <div>${item.daysMsg}</div>
-        </div>
-      `;
-      historyList.appendChild(historyItem);
-    });
-    
-    historyContainer.style.display = 'block';
-  }
+    </div>
 
-  function clearHistory() {
-    if (confirm('確定要清除所有歷史記錄嗎？')) {
-      localStorage.removeItem('scanHistory');
-      loadHistory();
-    }
-  }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrInput = document.getElementById('qr-input');
+            const checkBtn = document.getElementById('check-btn');
+            const cameraBtn = document.getElementById('camera-btn');
+            const resultDiv = document.getElementById('result');
+            const statusText = document.getElementById('status-text');
+            const daysText = document.getElementById('days-text');
+            const loader = document.getElementById('loader');
+            const errorMessage = document.getElementById('error-message');
+            const cameraContainer = document.getElementById('camera-container');
+            const closeCamera = document.getElementById('close-camera');
+            const cameraPermission = document.getElementById('camera-permission');
+            const enableCameraBtn = document.getElementById('enable-camera');
+            const cameraSelector = document.getElementById('camera-selector');
+            const cameraStatus = document.getElementById('camera-status');
+            
+            let html5QrCode = null;
+            let cameraPermissionGranted = false;
+            let availableCameras = [];
 
-  function scheduleRescan(){
-    let countdown=5;
-    autoRescan.style.display='block';
-    autoRescan.innerHTML=`<i class="fas fa-sync-alt"></i> ${countdown}秒後自動重新掃描...`;
-    
-    rescanInterval=setInterval(()=>{
-      countdown--;
-      if(countdown>0){
-        autoRescan.innerHTML=`<i class="fas fa-sync-alt"></i> ${countdown}秒後自動重新掃描...`;
-      } else {
-        clearInterval(rescanInterval);
-        autoRescan.style.display='none';
-        resetScanner();
-        if (document.querySelector('#scan-tab').classList.contains('active')) {
-          initCamera();
-        }
-      }
-    },1000);
-  }
+            // 檢查Html5Qrcode庫是否加載成功
+            function checkLibraryLoaded() {
+                if (typeof Html5Qrcode === 'undefined') {
+                    showError('無法加載QR掃描庫，請檢查網絡連接或刷新頁面重試');
+                    cameraBtn.disabled = true;
+                    return false;
+                }
+                return true;
+            }
 
-  function resetScanner(){
-    resultDiv.style.display='none';
-    scannedDate.style.display='none';
-    lastScannedCode='';
-  }
-  
-  function showError(msg){
-    errorMessage.innerHTML=msg;
-    errorMessage.style.display='block';
-  }
-  
-  function isValidDate(dateString){
-    const y=parseInt(dateString.slice(0,4)),
-          m=parseInt(dateString.slice(4,6)),
-          d=parseInt(dateString.slice(6,8));
-    
-    if(m<1||m>12) return {isValid:false,message:"無效的月份"};
-    
-    const daysInMonth=new Date(y,m,0).getDate();
-    if(d<1||d>daysInMonth) return {isValid:false,message:`該月份只有 ${daysInMonth} 天`};
-    
-    if(y<1900||y>2100) return {isValid:false,message:"年份應在1900-2100之間"};
-    
-    return {isValid:true};
-  }
-});
+            // 初始化检查相机权限
+            checkCameraPermission();
+            
+            // 检查日期按钮点击事件
+            checkBtn.addEventListener('click', function() {
+                const qrValue = qrInput.value.trim();
+                resultDiv.style.display = 'none';
+                errorMessage.style.display = 'none';
 
-// 註冊 Service Worker
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("service-worker.js").then(()=>console.log("Service Worker registered"));
-}
-</script>
+                if (!qrValue) { 
+                    showError('請輸入QR碼日期'); 
+                    return; 
+                }
+                
+                if (!/^\d{8}$/.test(qrValue)) { 
+                    showError('日期格式應為8位數字，例如: 20230929'); 
+                    return; 
+                }
+
+                // 验证日期有效性
+                const validation = isValidDate(qrValue);
+                if (!validation.isValid) {
+                    showError(validation.message || '無效的日期');
+                    return;
+                }
+
+                loader.style.display = 'block';
+                
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    
+                    try {
+                        const year = parseInt(qrValue.substring(0,4));
+                        const month = parseInt(qrValue.substring(4,6)) - 1;
+                        const day = parseInt(qrValue.substring(6,8));
+                        
+                        const qrDate = new Date(year, month, day);
+                        const today = new Date(); 
+                        today.setHours(0,0,0,0);
+                        
+                        const diffTime = qrDate.getTime() - today.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000*60*60*24));
+                        
+                        let status, statusClass;
+                        if(diffDays < 0){ 
+                            status="已過期"; 
+                            statusClass="expired"; 
+                        } else if(diffDays === 0){ 
+                            status="今天到期"; 
+                            statusClass="today"; 
+                        } else{ 
+                            status="尚未過期"; 
+                            statusClass="future"; 
+                        }
+                        
+                        statusText.textContent = status;
+                        statusText.className = `status ${statusClass}`;
+                        daysText.textContent = `剩餘天數: ${diffDays}天`;
+                        resultDiv.style.display = 'block';
+                        
+                        // 添加成功动画
+                        resultDiv.classList.add('success-animation');
+                        setTimeout(() => {
+                            resultDiv.classList.remove('success-animation');
+                        }, 500);
+                        
+                    } catch(e){ 
+                        showError('處理日期時發生錯誤: ' + e.message); 
+                    }
+                }, 500);
+            });
+
+            // 显示错误信息
+            function showError(msg){ 
+                errorMessage.textContent = msg; 
+                errorMessage.style.display = 'block';
+                
+                // 添加抖动动画
+                errorMessage.classList.add('error');
+                setTimeout(() => {
+                    errorMessage.classList.remove('error');
+                }, 500);
+            }
+
+            // 输入验证 - 只允许数字输入
+            qrInput.addEventListener('input', function(){ 
+                this.value = this.value.replace(/[^0-9]/g,''); 
+            });
+
+            // 检查相机权限
+            function checkCameraPermission() {
+                // 首先检查库是否已加载
+                if (!checkLibraryLoaded()) return;
+                
+                // 检查浏览器是否支持媒体设备
+                if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                    cameraBtn.disabled = true;
+                    cameraPermission.style.display = 'block';
+                    cameraPermission.querySelector('p').innerHTML = '<i class="fas fa-exclamation-triangle"></i> 您的瀏覽器不支持相機功能';
+                    return;
+                }
+                
+                // 检查是否有相机设备
+                navigator.mediaDevices.enumerateDevices()
+                    .then(devices => {
+                        const hasCamera = devices.some(device => device.kind === 'videoinput');
+                        if (!hasCamera) {
+                            cameraBtn.disabled = true;
+                            cameraPermission.style.display = 'block';
+                            cameraPermission.querySelector('p').innerHTML = '<i class="fas fa-exclamation-triangle"></i> 未檢測到相機設備';
+                            return;
+                        }
+                        
+                        // 检查相机权限状态
+                        if (navigator.permissions) {
+                            navigator.permissions.query({ name: 'camera' })
+                                .then(permissionStatus => {
+                                    updatePermissionUI(permissionStatus.state);
+                                    
+                                    permissionStatus.onchange = function() {
+                                        updatePermissionUI(this.state);
+                                    };
+                                })
+                                .catch(() => {
+                                    // 如果permissions API查询失败，尝试直接请求权限
+                                    cameraPermissionGranted = false;
+                                    cameraPermission.style.display = 'none';
+                                });
+                        } else {
+                            // 对于不支持permissions API的浏览器，我们隐藏权限提示
+                            cameraPermission.style.display = 'none';
+                        }
+                    })
+                    .catch(err => {
+                        console.error("無法枚举设备: ", err);
+                        cameraBtn.disabled = true;
+                        cameraPermission.style.display = 'block';
+                        cameraPermission.querySelector('p').innerHTML = '<i class="fas fa-exclamation-triangle"></i> 無法訪問設備信息';
+                    });
+            }
+            
+            // 更新权限UI状态
+            function updatePermissionUI(state) {
+                if (state === 'denied') {
+                    cameraBtn.disabled = true;
+                    cameraPermission.style.display = 'block';
+                    cameraPermissionGranted = false;
+                } else if (state === 'granted') {
+                    cameraBtn.disabled = false;
+                    cameraPermission.style.display = 'none';
+                    cameraPermissionGranted = true;
+                } else {
+                    // prompt状态 - 尚未决定
+                    cameraBtn.disabled = false;
+                    cameraPermission.style.display = 'none';
+                    cameraPermissionGranted = false;
+                }
+            }
+
+            // 启用相机按钮
+            enableCameraBtn.addEventListener('click', function() {
+                // 尝试请求相机权限
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        // 权限已授予，停止所有轨道并关闭流
+                        stream.getTracks().forEach(track => track.stop());
+                        cameraBtn.disabled = false;
+                        cameraPermission.style.display = 'none';
+                        cameraPermissionGranted = true;
+                    })
+                    .catch(err => {
+                        console.error("無法获取相机权限: ", err);
+                        if (err.name === 'NotAllowedError') {
+                            cameraPermission.querySelector('p').innerHTML = '<i class="fas fa-exclamation-triangle"></i> 相機權限已被拒絕，請在瀏覽器設置中啟用';
+                        } else {
+                            cameraPermission.querySelector('p').innerHTML = '<i class="fas fa-exclamation-triangle"></i> 無法獲取相機權限: ' + err.message;
+                        }
+                    });
+            });
+
+            // 打开相机扫描
+            cameraBtn.addEventListener('click', function(){
+                // 检查库是否已加载
+                if (!checkLibraryLoaded()) return;
+                
+                // 直接尝试请求相机权限
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        // 权限已授予，停止所有轨道并关闭流
+                        stream.getTracks().forEach(track => track.stop());
+                        cameraPermissionGranted = true;
+                        cameraPermission.style.display = 'none';
+                        openCameraScanner();
+                    })
+                    .catch(err => {
+                        console.error("無法获取相机权限: ", err);
+                        if (err.name === 'NotAllowedError') {
+                            cameraPermission.style.display = 'block';
+                            cameraPermission.querySelector('p').innerHTML = '<i class="fas fa-exclamation-triangle"></i> 相機權限已被拒絕';
+                        } else {
+                            showError('無法啟動相機: ' + err.message);
+                        }
+                    });
+            });
+            
+            // 打开相机扫描器
+            function openCameraScanner() {
+                cameraContainer.style.display = 'flex';
+                cameraStatus.textContent = "正在啟動相機...";
+                
+                // 获取可用相机列表
+                Html5Qrcode.getCameras().then(cameras => {
+                    availableCameras = cameras;
+                    if (cameras && cameras.length) {
+                        // 如果有多个相机，显示选择器
+                        if (cameras.length > 1) {
+                            cameraSelector.style.display = 'block';
+                            cameraSelector.innerHTML = '<option value="">選擇相機...</option>';
+                            cameras.forEach((camera, index) => {
+                                const option = document.createElement('option');
+                                option.value = camera.id;
+                                option.text = camera.label || `相機 ${index + 1}`;
+                                cameraSelector.appendChild(option);
+                            });
+                            
+                            // 监听相机选择变化
+                            cameraSelector.onchange = function() {
+                                if (this.value) {
+                                    startCamera(this.value);
+                                }
+                            };
+                            
+                            // 显示选择器，等待用户选择
+                            cameraStatus.textContent = "請選擇要使用的相機";
+                            return;
+                        }
+                        
+                        // 只有一个相机，直接启动
+                        startCamera(cameras[0].id);
+                    } else {
+                        showError('未找到可用的相機');
+                        closeCameraView();
+                    }
+                }).catch(err => {
+                    console.error("無法獲取相機列表: ", err);
+                    showError('無法訪問相機: ' + err);
+                    closeCameraView();
+                });
+            }
+            
+            // 启动指定相机
+            function startCamera(cameraId) {
+                // 隐藏选择器
+                cameraSelector.style.display = 'none';
+                cameraStatus.textContent = "正在啟動相機...";
+                
+                // 确保qr-reader元素存在
+                const qrReaderElement = document.getElementById('qr-reader');
+                if (!qrReaderElement) {
+                    showError('找不到QR掃描器元素');
+                    closeCameraView();
+                    return;
+                }
+                
+                // 初始化Html5Qrcode
+                html5QrCode = new Html5Qrcode("qr-reader");
+                
+                html5QrCode.start(
+                    cameraId,
+                    { 
+                        fps: 10, 
+                        qrbox: { width: 250, height: 250 } 
+                    },
+                    (decodedText, decodedResult) => {
+                        // 成功扫描到QR码
+                        const scannedText = decodedText.trim();
+                        if (/^\d{8}$/.test(scannedText)) {
+                            qrInput.value = scannedText;
+                            closeCameraView();
+                            
+                            // 自动检查日期
+                            setTimeout(() => {
+                                checkBtn.click();
+                            }, 300);
+                        } else {
+                            showError('掃描的QR碼不包含有效日期格式: ' + scannedText);
+                        }
+                    },
+                    (errorMessage) => {
+                        // 忽略扫描错误，继续扫描
+                        console.log("掃描錯誤:", errorMessage);
+                    }
+                ).then(() => {
+                    cameraStatus.textContent = "相機已啟動，請對準QR碼";
+                }).catch(err => {
+                    console.error("無法啟動相機: ", err);
+                    showError('無法啟動相機: ' + err.message);
+                    closeCameraView();
+                });
+            }
+
+            // 关闭相机视图
+            closeCamera.addEventListener('click', closeCameraView);
+
+            function closeCameraView(){
+                cameraContainer.style.display = 'none';
+                cameraSelector.style.display = 'none';
+                if(html5QrCode && html5QrCode.isScanning){
+                    html5QrCode.stop().then(() => {
+                        if (html5QrCode.clear) {
+                            html5QrCode.clear();
+                        }
+                        html5QrCode = null;
+                    }).catch(err => console.error("關閉相機時出錯: ", err));
+                }
+            }
+
+            // 验证日期有效性（包括闰年计算）
+            function isValidDate(dateString) {
+                if (dateString.length !== 8) {
+                    return { isValid: false, message: "日期必須是8位數字" };
+                }
+                
+                const year = parseInt(dateString.substring(0, 4));
+                const month = parseInt(dateString.substring(4, 6));
+                const day = parseInt(dateString.substring(6, 8));
+                
+                // 检查月份是否有效
+                if (month < 1 || month > 12) {
+                    return { isValid: false, message: "無效的月份" };
+                }
+                
+                // 检查日期是否有效
+                const daysInMonth = new Date(year, month, 0).getDate();
+                if (day < 1 || day > daysInMonth) {
+                    return { isValid: false, message: `該月份只有 ${daysInMonth} 天` };
+                }
+                
+                // 检查年份是否合理（1900-2100之间）
+                if (year < 1900 || year > 2100) {
+                    return { isValid: false, message: "年份應在1900-2100之間" };
+                }
+                
+                return { isValid: true };
+            }
+
+            // 点击外部隐藏键盘（针对移动设备）
+            document.addEventListener('touchstart', function(e){
+                if(e.target !== qrInput){
+                    qrInput.blur();
+                }
+            });
+            
+            // 初始检查库是否加载
+            setTimeout(() => {
+                checkLibraryLoaded();
+            }, 1000);
+        });
+    </script>
 </body>
 </html>
